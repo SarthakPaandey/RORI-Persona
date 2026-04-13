@@ -1,0 +1,125 @@
+{
+  "name": "AI Persona - {{PERSONA_NAME}}",
+  "model": {
+    "provider": "groq",
+    "model": "{{VAPI_MODEL}}",
+    "temperature": 0.3,
+    "systemPrompt": "You are RORI, Captain {{PERSONA_NAME}}'s loyal ship AI.\n\nIf asked who you are, answer briefly: \"I am RORI, Captain {{PERSONA_NAME}}'s loyal ship AI.\"\nDo not repeat that line unless the caller explicitly asks your identity again.\n\nKeep responses to 2-3 sentences for voice. Be warm, specific, and never make up facts.\n\nGrounding rules (critical):\n- For any question about projects, GitHub, resume, skills, experience, education, or role fit, call get_background_info first and answer only from the returned result.\n- If a specific repository is named, call get_github_info with repo_name plus the user's question.\n- Never invent project names, dates, company details, or achievements.\n- If information is unavailable, say: \"I don't have that specific information in my datacore right now.\" Then offer verified highlights.\n\nConversation style rules:\n- Avoid repeating your identity sentence in normal replies.\n- If an utterance sounds unclear or ambiguous, ask one short clarification question.\n- Handle follow-ups naturally and conversationally, not as scripted Q&A.\n\nUse your tools to look up background information, check calendar availability, and book meetings.\n\nFor booking: ask when the interviewer is free, call get_availability with the caller's scheduling request in the request field, suggest matching slots, and confirm one slot using book_meeting. When the caller confirms, pass their exact words in selection and do not invent a new date. Do not ask for contact details. Never promise reminders, emails, or meeting links unless a tool explicitly returned them."
+  },
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "{{ELEVENLABS_VOICE_ID}}",
+    "model": "eleven_flash_v2_5",
+    "stability": 0.5,
+    "similarityBoost": 0.75
+  },
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-3",
+    "language": "en-IN"
+  },
+  "firstMessage": "I am RORI, Captain {{PERSONA_NAME}}'s loyal ship AI. I can tell you about his resume highlights, GitHub projects, role fit, and schedule a rendezvous. Set course and ask me about his projects, experience, or why he is the right fit.",
+  "endCallMessage": "Thanks for calling! If you'd like to follow up, you can also chat at {{CHAT_URL}}. Have a great day.",
+  "endCallPhrases": [
+    "goodbye",
+    "bye",
+    "talk later",
+    "that's all",
+    "thank you bye"
+  ],
+  "recordingEnabled": true,
+  "hipaaEnabled": false,
+  "silenceTimeoutSeconds": 20,
+  "maxDurationSeconds": 600,
+  "backgroundSound": "off",
+  "backchannelingEnabled": true,
+  "analysisPlan": {
+    "summaryPrompt": "Summarize this call in 2-3 sentences. Note whether a booking was made and any key topics discussed.",
+    "successEvaluationPrompt": "Did the call end with either (a) a confirmed booking or (b) the caller getting the information they needed? Answer 'success' or 'failure' with one sentence of reasoning.",
+    "successEvaluationRubric": "PassFail",
+    "structuredDataSchema": {
+      "type": "object",
+      "properties": {
+        "booking_made": { "type": "boolean" },
+        "caller_name": { "type": "string" },
+        "caller_email": { "type": "string" },
+        "topics_discussed": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "name": "get_background_info",
+      "description": "Retrieve information about background, skills, experience, or specific GitHub projects. Use this whenever the caller asks about skills, projects, experience, education, or 'why are you right for this role'.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "The caller's question, verbatim or paraphrased."
+          }
+        },
+        "required": ["question"]
+      },
+      "async": false,
+      "serverUrl": "YOUR_BACKEND_URL/api/voice/vapi/webhook"
+    },
+    {
+      "name": "get_availability",
+      "description": "Fetch real calendar availability for the next 7 days. Use this when the caller asks about scheduling, availability, or wants to book. Pass the caller's scheduling request so the backend can filter the options.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "type": "string",
+            "description": "The caller's scheduling request in natural language, for example 'after 5 PM on April fifteenth'."
+          }
+        }
+      },
+      "async": false,
+      "serverUrl": "YOUR_BACKEND_URL/api/voice/vapi/webhook"
+    },
+    {
+      "name": "book_meeting",
+      "description": "Book a meeting on the calendar. Only call this after confirming one exact slot. Pass the caller's exact confirmation words in selection and do not invent a new date.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "datetime": {
+            "type": "string",
+            "description": "ISO 8601 datetime string for the meeting start time, but only when you are certain of the exact slot."
+          },
+          "selection": {
+            "type": "string",
+            "description": "The caller's exact confirmation phrase, for example 'book it from 5:30 PM to 6 PM'."
+          }
+        }
+      },
+      "async": false,
+      "serverUrl": "YOUR_BACKEND_URL/api/voice/vapi/webhook"
+    },
+    {
+      "name": "get_github_info",
+      "description": "Get detailed information about a specific GitHub repository - tech stack, purpose, architecture decisions, and tradeoffs.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "repo_name": {
+            "type": "string",
+            "description": "The repository name as it appears on GitHub."
+          },
+          "question": {
+            "type": "string",
+            "description": "The specific question about the repo."
+          }
+        },
+        "required": ["repo_name"]
+      },
+      "async": false,
+      "serverUrl": "YOUR_BACKEND_URL/api/voice/vapi/webhook"
+    }
+  ]
+}

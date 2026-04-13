@@ -1,0 +1,702 @@
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --terminal-green: #00ff41;
+    --neon-cyan: #00d9ff;
+    --neon-purple: #ff00ff;
+    --neon-pink: #ff0080;
+    --terminal-dark: #050505;
+    --space-bg: #000000;
+    --glass-bg: rgba(0, 20, 40, 0.4);
+}
+
+body {
+    background-color: var(--space-bg);
+    color: var(--terminal-green);
+    font-family: "Space Mono", monospace;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Animated gradient background layers */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at 20% 50%, rgba(0, 217, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 0, 128, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 1;
+    animation: gradientShift 8s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 255, 65, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--neon-cyan), var(--terminal-green));
+    border-radius: 5px;
+    border: 1px solid rgba(0, 255, 65, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--terminal-green), var(--neon-cyan));
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+}
+
+/* Terminal Effects - Enhanced */
+.terminal-container {
+    position: relative;
+    z-index: 10;
+    background: linear-gradient(135deg, rgba(0, 5, 2, 0.95) 0%, rgba(0, 10, 20, 0.95) 100%);
+    border: 2px solid rgba(0, 255, 65, 0.4);
+    box-shadow: 
+        0 0 30px rgba(0, 255, 65, 0.25),
+        0 0 60px rgba(0, 217, 255, 0.1),
+        inset 0 0 40px rgba(0, 255, 65, 0.08);
+    backdrop-filter: blur(12px);
+    transition: box-shadow 0.3s ease;
+}
+
+.terminal-container:hover {
+    box-shadow: 
+        0 0 40px rgba(0, 255, 65, 0.35),
+        0 0 80px rgba(0, 217, 255, 0.15),
+        inset 0 0 50px rgba(0, 255, 65, 0.12);
+}
+
+/* Animated border effect */
+.terminal-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(0, 217, 255, 0.2) 25%,
+        transparent 50%,
+        rgba(0, 217, 255, 0.2) 75%,
+        transparent 100%
+    );
+    animation: borderGlow 3s linear infinite;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+@keyframes borderGlow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Neon text glow effect */
+.neon-glow {
+    text-shadow: 
+        0 0 5px var(--terminal-green),
+        0 0 10px rgba(0, 255, 65, 0.5),
+        0 0 20px rgba(0, 255, 65, 0.3);
+    animation: neonFlicker 0.1s infinite, neonPulse 2s ease-in-out infinite;
+}
+
+@keyframes neonFlicker {
+    0%, 100% { text-shadow: 0 0 5px var(--terminal-green), 0 0 10px rgba(0, 255, 65, 0.5), 0 0 20px rgba(0, 255, 65, 0.3); }
+    50% { text-shadow: 0 0 4px var(--terminal-green), 0 0 8px rgba(0, 255, 65, 0.3), 0 0 15px rgba(0, 255, 65, 0.2); }
+}
+
+@keyframes neonPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Message animation */
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.message-enter {
+    animation: messageSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Enhanced typing indicator */
+@keyframes typingDot {
+    0%, 20% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(-10px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0.5; }
+}
+
+.typing-dot {
+    animation: typingDot 1.4s infinite;
+}
+
+/* Scan line effect */
+.scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.06),
+        rgba(0, 0, 0, 0.06) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    animation: scanlineMove 8s linear infinite;
+    z-index: 2;
+}
+
+@keyframes scanlineMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(10px); }
+}
+
+/* Cyber border effect */
+.cyber-border {
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-border::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent,
+        rgba(0, 255, 65, 0.3),
+        transparent
+    );
+    animation: cyberGlow 3s infinite;
+    pointer-events: none;
+}
+
+@keyframes cyberGlow {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.crt-overlay {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: 
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.04));
+    z-index: 50;
+    background-size: 100% 3px, 4px 100%;
+    pointer-events: none;
+}
+
+/* Vignette Effect */
+.crt-overlay::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.6) 110%);
+    z-index: 51;
+    pointer-events: none;
+}
+
+@keyframes scanline-scroll {
+    0% { transform: translateY(-100%); opacity: 0.1; }
+    50% { opacity: 0.3; }
+    100% { transform: translateY(100vh); opacity: 0.1; }
+}
+
+.crt-overlay::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 255, 65, 0.03);
+    z-index: 52;
+    pointer-events: none;
+    animation: scanline-scroll 6s linear infinite;
+    height: 10vh;
+    box-shadow: 0 0 50px rgba(0, 255, 65, 0.4);
+}
+
+@keyframes cursor-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+.terminal-cursor {
+    display: inline-block;
+    width: 10px;
+    height: 1.2em;
+    background-color: var(--terminal-green);
+    animation: cursor-blink 1s step-end infinite;
+    vertical-align: bottom;
+    box-shadow: 0 0 8px var(--terminal-green);
+}
+
+.terminal-text {
+    /* Chromatic Aberration Simulation */
+    text-shadow: 
+        1px 0 1px rgba(255, 0, 0, 0.4),
+        -1px 0 1px rgba(0, 0, 255, 0.4),
+        0 0 3px rgba(0, 255, 65, 0.3);
+    font-family: "VT323", monospace;
+    font-size: 1.15rem;
+    letter-spacing: 0.03em;
+}
+
+.text-shadow-sm {
+    text-shadow: 
+        0.5px 0 0.5px rgba(255, 0, 0, 0.3),
+        -0.5px 0 0.5px rgba(0, 0, 255, 0.3),
+        0 0 4px rgba(0, 255, 65, 0.5);
+}
+
+/* Tech Borders */
+.tech-frame {
+    position: relative;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(0, 255, 65, 0.4), transparent 40%, transparent 60%, rgba(0, 255, 65, 0.4));
+}
+
+.tech-corner-tl, .tech-corner-tr, .tech-corner-bl, .tech-corner-br {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--terminal-green);
+    z-index: 20;
+    pointer-events: none;
+}
+
+.tech-corner-tl { top: -4px; left: -4px; border-right: none; border-bottom: none; }
+.tech-corner-tr { top: -4px; right: -4px; border-left: none; border-bottom: none; }
+.tech-corner-bl { bottom: -4px; left: -4px; border-right: none; border-top: none; }
+.tech-corner-br { bottom: -4px; right: -4px; border-left: none; border-top: none; }
+
+.terminal-input {
+    background: rgba(0, 10, 5, 0.8) !important;
+    color: var(--terminal-green) !important;
+    border: 1px solid rgba(0, 255, 65, 0.3) !important;
+    font-family: "VT323", monospace;
+    box-shadow: inset 0 0 15px rgba(0, 255, 65, 0.05);
+}
+.terminal-input:focus {
+    outline: none !important;
+    border-color: var(--terminal-green) !important;
+    box-shadow: 
+        inset 0 0 10px rgba(0, 255, 65, 0.1),
+        0 0 15px rgba(0, 255, 65, 0.1) !important;
+}
+.terminal-input::placeholder {
+    color: rgba(0, 255, 65, 0.4) !important;
+}
+
+/* Space Background Animations */
+.space-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    overflow: hidden;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    will-change: opacity, transform;
+    transform-origin: right center;
+    animation: warp-fly linear infinite;
+}
+
+/* Terminal float */
+.terminal-float {
+    animation: terminal-bob 8s ease-in-out infinite;
+    will-change: transform;
+}
+ 
+   .shooting-star {
+     position: absolute;
+     width: 2px;
+     height: 2px;
+     background: #fff;
+     box-shadow:
+         0 0 10px #fff,
+         0 0 20px #fff;
+     animation: shoot 3s linear infinite;
+     opacity: 0;
+     will-change: transform, opacity;
+   }
+.shooting-star::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100px;
+    height: 1px;
+    background: linear-gradient(90deg, #fff, transparent);
+}
+
+.asteroid {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle at 30% 30%, #555, #222);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.5);
+    animation: asteroid-fly 15s linear infinite;
+}
+
+.spaceship {
+    position: absolute;
+    width: 40px;
+    height: 20px;
+    background: #aaa;
+    clip-path: polygon(0 50%, 20% 0, 100% 50%, 20% 100%);
+    box-shadow: -10px 0 15px rgba(0, 255, 255, 0.8);
+    animation: ship-fly 20s ease-in-out infinite;
+    opacity: 0.8;
+}
+.spaceship::after {
+    content: "";
+    position: absolute;
+    left: -15px;
+    top: 4px;
+    width: 15px;
+    height: 12px;
+    background: cyan;
+    filter: blur(3px);
+    animation: thruster 0.1s infinite alternate;
+}
+
+@keyframes twinkle {
+    0% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 1;
+        text-shadow: 0 0 10px #fff;
+        transform: scale(1.5);
+    }
+}
+
+/* Warp-speed star motion: streaks fly from right to left */
+@keyframes warp-fly {
+    0% {
+        transform: translateX(15vw) scaleX(1);
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    30% {
+        /* Stretch into a streak mid-flight */
+        transform: translateX(0vw) scaleX(4);
+        opacity: 0.9;
+    }
+    95% {
+        opacity: 0.6;
+        transform: translateX(-120vw) scaleX(3);
+    }
+    100% {
+        transform: translateX(-130vw) scaleX(1);
+        opacity: 0;
+    }
+}
+
+/* Subtle terminal bob — feels like drifting in zero-g */
+@keyframes terminal-bob {
+    0%   { transform: translateY(0px) rotate(0deg); }
+    25%  { transform: translateY(-4px) rotate(0.15deg); }
+    50%  { transform: translateY(-2px) rotate(0deg); }
+    75%  { transform: translateY(3px) rotate(-0.15deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes shoot {
+    0% {
+        transform: translate(100vw, -10vh) rotate(-45deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-10vw, 100vh) rotate(-45deg);
+        opacity: 0;
+    }
+}
+
+@keyframes asteroid-fly {
+    0% {
+        transform: translate(-10vw, -10vh) rotate(0deg);
+    }
+    100% {
+        transform: translate(110vw, 110vh) rotate(360deg);
+    }
+}
+
+ @keyframes ship-fly {
+     0% {
+         transform: translate(-20vw, 70vh) scale(0.8);
+         opacity: 0;
+     }
+     10% {
+         opacity: 1;
+     }
+     90% {
+         opacity: 1;
+         transform: translate(100vw, 30vh) scale(1.2);
+     }
+     100% {
+         transform: translate(120vw, 20vh) scale(1);
+         opacity: 0;
+     }
+   }
+   
+   @keyframes ship-fly-reverse {
+     0% {
+         transform: translate(120vw, 30vh) scale(0.8);
+         opacity: 0;
+     }
+     10% {
+         opacity: 1;
+     }
+     90% {
+         opacity: 1;
+         transform: translate(-20vw, 60vh) scale(1.2);
+     }
+     100% {
+         transform: translate(-20vw, 70vh) scale(1);
+         opacity: 0;
+     }
+   }
+ 
+   @keyframes satellite-orbit {
+     0% {
+         transform: translate(-10vw, 0) rotate(0deg);
+         opacity: 0;
+     }
+     10% {
+         opacity: 1;
+     }
+     90% {
+         opacity: 1;
+         transform: translate(110vw, 0) rotate(360deg);
+     }
+     100% {
+         transform: translate(120vw, 0) rotate(360deg);
+         opacity: 0;
+     }
+   }
+   
+   @keyframes satellite-orbit-reverse {
+     0% {
+         transform: translate(110vw, 0) rotate(0deg);
+         opacity: 0;
+     }
+     10% {
+         opacity: 1;
+     }
+     90% {
+         opacity: 1;
+         transform: translate(-10vw, 0) rotate(-360deg);
+     }
+     100% {
+         transform: translate(-20vw, 0) rotate(-360deg);
+         opacity: 0;
+     }
+   }
+
+@keyframes thruster {
+    from {
+        transform: scaleX(0.8);
+        opacity: 0.8;
+    }
+    to {
+        transform: scaleX(1.2);
+        opacity: 1;
+    }
+}
+
+@keyframes crt-flicker {
+    0% {
+        opacity: 0.98;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.99;
+    }
+}
+
+@keyframes typing-dot {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    30% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+}
+
+.typing-dot {
+    animation: typing-dot 1.4s infinite ease-in-out;
+    background-color: var(--terminal-green);
+}
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.message-enter {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+ .chat-markdown {
+     font-size: 1.15rem;
+     line-height: 1.6;
+     word-wrap: break-word;
+     overflow-wrap: break-word;
+   }
+   .chat-markdown p {
+     @apply mb-3;
+   }
+   .chat-markdown h1,
+   .chat-markdown h2,
+   .chat-markdown h3 {
+     @apply font-bold mt-3 mb-2 text-xl;
+     color: #fff;
+     text-shadow: 0 0 3px var(--terminal-green);
+   }
+   .chat-markdown ul,
+   .chat-markdown ol {
+     @apply pl-5 my-2;
+     list-style-type: square;
+   }
+   .chat-markdown code {
+     @apply px-1 py-0.5 rounded text-lg overflow-x-auto;
+     background: rgba(0, 255, 65, 0.1);
+     color: #fff;
+     word-break: break-word;
+   }
+   .chat-markdown pre {
+     @apply p-3 rounded-md overflow-x-auto my-2 border border-green-500/30;
+     background: rgba(0, 255, 65, 0.05);
+   }
+   .chat-markdown pre code {
+     @apply bg-transparent p-0 text-sm sm:text-base;
+   }
+   .chat-markdown a {
+     @apply underline;
+     color: #00ffcc;
+   }
+   .chat-markdown a:hover {
+     text-shadow: 0 0 5px #00ffcc;
+   }
+ 
+   /* Mobile-first responsive adjustments */
+   @media (max-width: 640px) {
+     body {
+       font-size: 14px;
+     }
+     
+     .terminal-text {
+       font-size: 1rem;
+     }
+     
+     .chat-markdown {
+       font-size: 1rem;
+     }
+     
+     .chat-markdown code {
+       font-size: 0.9rem;
+     }
+     
+     .chat-markdown pre {
+       font-size: 0.85rem;
+       padding: 0.75rem;
+     }
+   }
+
+  /* Reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    
+    .star,
+    .shooting-star,
+    .spaceship,
+    .crt-overlay::after,
+    .typing-dot,
+    .message-enter,
+    .terminal-float {
+      animation: none !important;
+    }
+    
+    .crt-overlay {
+      display: none;
+    }
+  }

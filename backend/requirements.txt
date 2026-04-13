@@ -1,0 +1,38 @@
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-dotenv==1.0.1
+pydantic==2.6.1
+pydantic-settings==2.1.0
+email-validator==2.1.0.post1
+
+# LLM & RAG
+langchain==0.1.9
+langchain-openai==0.0.6
+langchain-community==0.0.21
+langchain-pinecone==0.0.3
+openai==1.12.0
+langchain-core>=0.1.0,<0.2
+
+# Vector Store
+pinecone-client==3.0.2
+
+# Document Processing
+pypdf==4.0.1
+tiktoken==0.6.0
+
+# HTTP & APIs
+httpx==0.27.0
+aiohttp==3.9.3
+requests==2.31.0
+
+# GitHub
+PyGithub==2.2.0
+
+# Utilities
+pyyaml==6.0.1
+structlog==24.1.0
+python-multipart==0.0.9
+
+# Testing
+pytest>=8.0.1,<9
+pytest-asyncio>=0.23.5,<0.24

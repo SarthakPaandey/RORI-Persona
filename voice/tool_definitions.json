@@ -1,0 +1,46 @@
+[
+  {
+    "name": "get_background_info",
+    "description": "Retrieve information about background, skills, experience, or GitHub projects.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "question": { "type": "string" }
+      },
+      "required": ["question"]
+    }
+  },
+  {
+    "name": "get_availability",
+    "description": "Fetch real calendar availability for the next 7 days and pass the caller's scheduling request so the backend can filter the options.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "request": { "type": "string" }
+      }
+    }
+  },
+  {
+    "name": "book_meeting",
+    "description": "Book a meeting after confirming one exact slot. Pass the caller's exact confirmation words in selection and do not invent a new date.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "datetime": { "type": "string" },
+        "selection": { "type": "string" }
+      }
+    }
+  },
+  {
+    "name": "get_github_info",
+    "description": "Get details about a specific GitHub repository.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "repo_name": { "type": "string" },
+        "question": { "type": "string" }
+      },
+      "required": ["repo_name"]
+    }
+  }
+]
