@@ -144,6 +144,9 @@ class Settings(BaseSettings):
                 "Set OPENAI_API_KEY for OpenAI embeddings, or set NVIDIA_EMBEDDING_API_KEY, "
                 "or set EMBEDDING_API_BASE + EMBEDDING_API_KEY (e.g. Groq + ModelScope)."
             )
+        if self.llm_max_tokens > 2048:
+            self.llm_max_tokens = 2048
+
         return self
 
 

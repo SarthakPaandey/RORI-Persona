@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import structlog
 from dataclasses import dataclass, field
 from typing import AsyncIterator, List
@@ -217,7 +218,7 @@ class RAGEngine:
             return min(8, k + 3)
         return k
 
-    def _merge_showcase_boost(self, query: str, docs_with_scores: List[tuple]) -> List[tuple]:
+    async def _merge_showcase_boost(self, query: str, docs_with_scores: List[tuple]) -> List[tuple]:
         """
         Pure vector search can surface unrelated small repos. Merge in a second retrieval biased toward
         AI/ML + flagship repo names, then rank showcase repos first.
@@ -240,8 +241,10 @@ class RAGEngine:
         if is_recent:
             for repo_name in sorted(showcase):
                 try:
-                    hits = self.vector_store.similarity_search_with_score(
-                        f"GitHub Repository: {repo_name}", k=2
+                    hits = await asyncio.to_thread(
+                        self.vector_store.similarity_search_with_score,
+                        f"GitHub Repository: {repo_name}",
+                        2
                     )
                     extra.extend(hits)
                 except Exception:
@@ -252,8 +255,10 @@ class RAGEngine:
                 f"embeddings Pinecone LangChain production {' '.join(sorted(showcase))}"
             )
             try:
-                extra = self.vector_store.similarity_search_with_score(
-                    bias_q, k=min(12, len(showcase) + 6)
+                extra = await asyncio.to_thread(
+                    self.vector_store.similarity_search_with_score,
+                    bias_q,
+                    min(12, len(showcase) + 6)
                 )
             except Exception as e:
                 logger.warning("showcase boost search failed", error=str(e))
@@ -327,7 +332,11 @@ class RAGEngine:
         """Retrieve relevant documents from vector store."""
         try:
             k = self._retrieve_k(query)
-            results = self.vector_store.similarity_search_with_score(query, k=k)
+            results = await asyncio.to_thread(
+                self.vector_store.similarity_search_with_score,
+                query,
+                k
+            )
 
             filtered = [
                 (doc, score)
@@ -343,7 +352,7 @@ class RAGEngine:
 
             max_docs = max(1, int(getattr(self.settings, "rag_max_context_docs", 6) or 6))
             base = filtered if filtered else (results[:max_docs] if results else [])
-            merged = self._merge_showcase_boost(query, base)
+            merged = await self._merge_showcase_boost(query, base)
             return merged if merged else base
 
         except Exception as e:
