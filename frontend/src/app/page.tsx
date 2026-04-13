@@ -150,8 +150,9 @@ import { usePersona } from "@/hooks/usePersona";
 };
 
 export default function Home() {
-  const { persona } = usePersona();
-  const { messages, isLoading, sendMessage } = useChat(persona.name || "Captain Sarthak");
+  const { persona, isLoading: isPersonaLoading } = usePersona();
+  const personaName = !isPersonaLoading && persona.name ? persona.name : "Captain Sarthak";
+  const { messages, isLoading, sendMessage } = useChat(personaName);
 
   return (
     <>
@@ -185,7 +186,7 @@ export default function Home() {
             />
 
             <main className="flex-1 overflow-hidden flex flex-col">
-               {!persona.resume_configured && (
+               {!isPersonaLoading && !persona.resume_configured && (
                  <div className="mx-2 sm:mx-4 mt-2 sm:mt-4 border-2 border-neon-pink/60 bg-neon-pink/10 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-neon-pink font-semibold rounded backdrop-blur animate-pulse">
                    <span className="font-bold">⚠ ALERT:</span> Resume grounding is offline. Initialize database sequence before mission critical deployment.
                  </div>

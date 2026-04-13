@@ -102,6 +102,7 @@ class Settings(BaseSettings):
     similarity_threshold: float = 0.7
     rag_max_context_docs: int = 6
     rag_max_chars_per_doc: int = 1200
+    rag_retrieval_timeout_seconds: float = 8.0
 
     @model_validator(mode="after")
     def validate_llm_and_embedding_keys(self):

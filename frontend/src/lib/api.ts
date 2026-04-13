@@ -66,6 +66,8 @@ async function fetchJSON<T>(
 }
 
 const CHAT_TIMEOUT_MS = 120_000;
+const STREAM_FIRST_EVENT_TIMEOUT_MS = 12_000;
+const STREAM_IDLE_TIMEOUT_MS = 20_000;
 
 export type ChatStreamEvent =
   | { type: 'token'; token: string }
@@ -96,69 +98,111 @@ export async function streamChatMessage(
   payload: ChatRequest,
   onEvent?: (event: ChatStreamEvent) => void
 ): Promise<ChatResponse> {
-  const res = await fetch(`${getApiBase()}/api/chat/stream`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
-  });
+  const controller = new AbortController();
+  let timeoutMessage = '';
+  let sawEvent = false;
+  let silenceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API error ${res.status}: ${text}`);
-  }
+  const clearSilenceTimer = () => {
+    if (silenceTimer) {
+      clearTimeout(silenceTimer);
+      silenceTimer = null;
+    }
+  };
 
-  if (!res.body) {
-    throw new Error('Streaming response body is unavailable');
-  }
+  const armSilenceTimer = () => {
+    clearSilenceTimer();
+    const timeoutMs = sawEvent ? STREAM_IDLE_TIMEOUT_MS : STREAM_FIRST_EVENT_TIMEOUT_MS;
+    timeoutMessage = sawEvent
+      ? 'Streaming chat stalled before completion'
+      : 'Streaming chat timed out before the first response chunk';
+    silenceTimer = setTimeout(() => controller.abort(), timeoutMs);
+  };
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let finalResponse: ChatResponse | null = null;
+  const totalTimer = setTimeout(() => {
+    timeoutMessage = 'Streaming chat timed out';
+    controller.abort();
+  }, CHAT_TIMEOUT_MS);
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
+  armSilenceTimer();
 
-    buffer += decoder.decode(value, { stream: true });
-    let newlineIndex = buffer.indexOf('\n');
-    while (newlineIndex >= 0) {
-      const line = buffer.slice(0, newlineIndex);
-      buffer = buffer.slice(newlineIndex + 1);
+  try {
+    const res = await fetch(`${getApiBase()}/api/chat/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
 
-      const event = parseStreamEventLine(line);
-      if (event) {
-        onEvent?.(event);
-        if (event.type === 'done') {
-          finalResponse = event.response;
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`API error ${res.status}: ${text}`);
+    }
+
+    if (!res.body) {
+      throw new Error('Streaming response body is unavailable');
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalResponse: ChatResponse | null = null;
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      let newlineIndex = buffer.indexOf('\n');
+      while (newlineIndex >= 0) {
+        const line = buffer.slice(0, newlineIndex);
+        buffer = buffer.slice(newlineIndex + 1);
+
+        const event = parseStreamEventLine(line);
+        if (event) {
+          sawEvent = true;
+          armSilenceTimer();
+          onEvent?.(event);
+          if (event.type === 'done') {
+            finalResponse = event.response;
+          }
+          if (event.type === 'error') {
+            throw new Error(event.error || 'Streaming chat failed');
+          }
         }
+
+        newlineIndex = buffer.indexOf('\n');
+      }
+    }
+
+    const remaining = (buffer + decoder.decode()).trim();
+    if (remaining) {
+      const event = parseStreamEventLine(remaining);
+      if (event) {
+        sawEvent = true;
+        armSilenceTimer();
+        onEvent?.(event);
+        if (event.type === 'done') finalResponse = event.response;
         if (event.type === 'error') {
           throw new Error(event.error || 'Streaming chat failed');
         }
       }
-
-      newlineIndex = buffer.indexOf('\n');
     }
-  }
 
-  const remaining = (buffer + decoder.decode()).trim();
-  if (remaining) {
-    const event = parseStreamEventLine(remaining);
-    if (event) {
-      onEvent?.(event);
-      if (event.type === 'done') finalResponse = event.response;
-      if (event.type === 'error') {
-        throw new Error(event.error || 'Streaming chat failed');
-      }
+    if (!finalResponse) {
+      throw new Error('Chat stream ended without a final response');
     }
-  }
 
-  if (!finalResponse) {
-    throw new Error('Chat stream ended without a final response');
+    return finalResponse;
+  } catch (error) {
+    if (controller.signal.aborted && timeoutMessage) {
+      throw new Error(timeoutMessage);
+    }
+    throw error;
+  } finally {
+    clearSilenceTimer();
+    clearTimeout(totalTimer);
   }
-
-  return finalResponse;
 }
 
 export async function getAvailability(): Promise<AvailabilityResponse> {

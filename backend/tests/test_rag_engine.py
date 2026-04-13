@@ -1,5 +1,6 @@
 """Tests for the RAG engine."""
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,6 +17,7 @@ def settings():
     s.persona_role = "AI Engineer"
     s.retrieval_top_k = 5
     s.similarity_threshold = 0.7
+    s.rag_retrieval_timeout_seconds = 0.01
     return s
 
 
@@ -72,3 +74,24 @@ async def test_rag_handles_empty_retrieval(settings, mock_vector_store, mock_llm
         result = await engine.query("Unknown topic", [])
 
     assert result.confidence == 0.0
+
+
+@pytest.mark.asyncio
+async def test_rag_retrieval_timeout_falls_back_to_empty_context(
+    settings,
+    mock_vector_store,
+    mock_llm,
+):
+    async def slow_to_thread(*args, **kwargs):
+        await asyncio.sleep(0.05)
+        return []
+
+    with (
+        patch("app.core.rag_engine.get_llm", return_value=mock_llm),
+        patch("app.core.rag_engine.asyncio.to_thread", side_effect=slow_to_thread),
+    ):
+        engine = RAGEngine(settings, mock_vector_store)
+        result = await engine.query("hi", [])
+
+    assert result.answer == "Mocked LLM response."
+    assert result.source_documents == []

@@ -12,6 +12,7 @@ describe('Header', () => {
         voiceEnabled={true}
       />
     );
-    expect(screen.getByText(/Sarthak Pandey's AI Representative/i)).toBeInTheDocument();
+    expect(screen.getByText(/RORI \/\/ COPILOT AI/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sarthak Pandey/i)).toBeInTheDocument();
   });
 });

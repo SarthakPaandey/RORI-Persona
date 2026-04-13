@@ -218,6 +218,32 @@ class RAGEngine:
             return min(8, k + 3)
         return k
 
+    def _retrieval_timeout_seconds(self) -> float:
+        """Clamp vector retrieval timeout to a sane positive value."""
+        raw = getattr(self.settings, "rag_retrieval_timeout_seconds", 8.0) or 8.0
+        return max(1.0, float(raw))
+
+    async def _similarity_search_with_score(self, query: str, k: int) -> List[tuple]:
+        """Run vector search off the event loop and fail fast on provider stalls."""
+        timeout_seconds = self._retrieval_timeout_seconds()
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(
+                    self.vector_store.similarity_search_with_score,
+                    query,
+                    k,
+                ),
+                timeout=timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            logger.warning(
+                "vector_search_timeout",
+                query=query[:100],
+                k=k,
+                timeout_seconds=timeout_seconds,
+            )
+            return []
+
     async def _merge_showcase_boost(self, query: str, docs_with_scores: List[tuple]) -> List[tuple]:
         """
         Pure vector search can surface unrelated small repos. Merge in a second retrieval biased toward
@@ -241,10 +267,9 @@ class RAGEngine:
         if is_recent:
             for repo_name in sorted(showcase):
                 try:
-                    hits = await asyncio.to_thread(
-                        self.vector_store.similarity_search_with_score,
+                    hits = await self._similarity_search_with_score(
                         f"GitHub Repository: {repo_name}",
-                        2
+                        2,
                     )
                     extra.extend(hits)
                 except Exception:
@@ -255,10 +280,9 @@ class RAGEngine:
                 f"embeddings Pinecone LangChain production {' '.join(sorted(showcase))}"
             )
             try:
-                extra = await asyncio.to_thread(
-                    self.vector_store.similarity_search_with_score,
+                extra = await self._similarity_search_with_score(
                     bias_q,
-                    min(12, len(showcase) + 6)
+                    min(12, len(showcase) + 6),
                 )
             except Exception as e:
                 logger.warning("showcase boost search failed", error=str(e))
@@ -332,11 +356,7 @@ class RAGEngine:
         """Retrieve relevant documents from vector store."""
         try:
             k = self._retrieve_k(query)
-            results = await asyncio.to_thread(
-                self.vector_store.similarity_search_with_score,
-                query,
-                k
-            )
+            results = await self._similarity_search_with_score(query, k)
 
             filtered = [
                 (doc, score)
