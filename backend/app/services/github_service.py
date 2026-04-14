@@ -2,7 +2,7 @@
 
 import structlog
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional, Set
 
 from github import Github
 
@@ -36,14 +36,47 @@ class GitHubService:
         self.github = Github(settings.github_token)
         self.username = settings.github_username
 
-    def fetch_all_repos(self) -> List[RepoInfo]:
-        """Fetch all public repositories for the user."""
+    def fetch_all_repos(
+        self,
+        showcase_repos: Optional[Set[str]] = None,
+        exclude_repos: Optional[Set[str]] = None,
+    ) -> List[RepoInfo]:
+        """Fetch public repositories for the user.
+
+        When *showcase_repos* is provided, **only** those repos (plus any with
+        a description and real code) are ingested. Everything in *exclude_repos*
+        is always skipped. Repos are sorted by most-recent code push so the
+        latest projects surface first.
+        """
         user = self.github.get_user(self.username)
         repos = []
 
-        for repo in user.get_repos(type="public", sort="updated", direction="desc"):
+        exclude = exclude_repos or set()
+
+        for repo in user.get_repos(type="public", sort="pushed", direction="desc"):
             if repo.fork:
                 continue
+            if repo.name in exclude:
+                logger.info("Skipped excluded repo", name=repo.name)
+                continue
+
+            # When a showcase list is provided, skip repos that are NOT in the
+            # showcase AND look like trivial/empty repos (no language, tiny size,
+            # no description).
+            if showcase_repos and repo.name not in showcase_repos:
+                is_meaningful = (
+                    repo.language
+                    and repo.size >= 50
+                    and repo.description
+                )
+                if not is_meaningful:
+                    logger.info(
+                        "Skipped non-showcase trivial repo",
+                        name=repo.name,
+                        size=repo.size,
+                        language=repo.language,
+                    )
+                    continue
 
             try:
                 repo_info = self._parse_repo(repo)
@@ -117,6 +150,7 @@ class GitHubService:
             "Rust",
             "Go",
             "Java",
+            "Kotlin",
             "GraphQL",
             "REST",
             "gRPC",
@@ -132,6 +166,10 @@ class GitHubService:
             "Prisma",
             "SQLAlchemy",
             "Drizzle",
+            "Firebase",
+            "Vapi",
+            "ElevenLabs",
+            "LangGraph",
         ]
 
         detected = set(languages)

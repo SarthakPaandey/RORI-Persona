@@ -275,8 +275,11 @@ async def _prepare_chat_context(chat_request: ChatRequest, settings) -> Prepared
     )
     booking_link = f"https://cal.com/{settings.calcom_username}"
 
-    if _assistant_requested_email(conversation_history) and not _extract_first_email(
-        chat_request.message
+    if (
+        _assistant_requested_email(conversation_history)
+        and not _email_already_provided(conversation_history, chat_request.message)
+        and not _is_new_non_booking_question(chat_request.message)
+        and not _extract_first_email(chat_request.message)
     ):
         return PreparedChatContext(
             conversation_history=conversation_history,
@@ -389,8 +392,17 @@ def _is_booking_context(message: str, conversation_history: list) -> bool:
     if not conversation_history:
         return False
 
+    # If user is clearly asking a non-booking question, always exit booking flow
+    if _is_new_non_booking_question(message):
+        return False
+
+    # If we already asked for email and the user already provided one earlier,
+    # don't keep looping — exit booking flow unless the current message is
+    # explicitly booking-related.
     if _assistant_requested_email(conversation_history):
-        return not _is_new_non_booking_question(message)
+        if _email_already_provided(conversation_history, message):
+            return _detect_booking_intent(message)
+        return True
 
     assistant_message = _latest_assistant_message(conversation_history)
     if not assistant_message:
@@ -520,15 +532,34 @@ def _is_new_non_booking_question(message: str) -> bool:
 
 
 def _assistant_requested_email(conversation_history: list) -> bool:
-    """Check if the most recent assistant message asks the user for email."""
+    """Check if the most recent assistant message *explicitly* asks the user for email in a booking context.
+
+    We require both an email-related marker AND a booking-action marker to avoid
+    false positives from generic mentions of the word 'email' in non-booking
+    responses.
+    """
     if not conversation_history:
         return False
 
-    markers = [
-        "email",
+    email_markers = [
         "email address",
         "full name and email",
         "name and email",
+        "provide your email",
+        "share your email",
+        "share a valid email",
+        "your email",
+    ]
+
+    booking_context_markers = [
+        "book",
+        "interview",
+        "booking",
+        "confirm",
+        "schedule",
+        "slot",
+        "cal.com",
+        "rendezvous",
     ]
 
     for item in reversed(conversation_history):
@@ -536,7 +567,29 @@ def _assistant_requested_email(conversation_history: list) -> bool:
         if role != "assistant":
             continue
         content = str(getattr(item, "content", "")).lower()
-        return any(marker in content for marker in markers)
+        has_email = any(marker in content for marker in email_markers)
+        has_booking = any(marker in content for marker in booking_context_markers)
+        return has_email and has_booking
+
+    return False
+
+
+def _email_already_provided(conversation_history: list, current_message: str = "") -> bool:
+    """Check if the user has already provided an email in the conversation.
+
+    Scans all previous user messages AND the current message. If an email was
+    already given, the system should not keep re-prompting.
+    """
+    if _extract_first_email(current_message):
+        return True
+
+    for item in conversation_history:
+        role = str(getattr(item, "role", "")).lower()
+        if role != "user":
+            continue
+        content = str(getattr(item, "content", ""))
+        if _extract_first_email(content):
+            return True
 
     return False
 

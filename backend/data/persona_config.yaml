@@ -40,6 +40,20 @@ github_exclude_repos:
   - Nodetutorial
   - classesreact
   - Sstclasses
+  - ReactDevelopment
+  - Devops_Notes
+  - BITSASSIGNMENT
+  - Snakes-Ladder
+  - ParkingLotLLD
+  - ATM
+  - Booking_System_SST
+  - bitsassignmentdevops
+  - DatasetReader
+  - Dynamic_To_Do_List
+  - real-time-chat
+  - ChessOpenSource
+  - kanban
+  - VectorAI
 
 # Flagship / AI-relevant repos — retrieval boosts these so they beat random similarity hits (e.g. small JS demos)
 github_showcase_repos:
@@ -52,6 +66,11 @@ github_showcase_repos:
   - AnonymChat
   - bhashini
   - BOT-NINE
+  - RORI-Persona
+  - FlowEx
+  - Resumerator
+  - StoryVerse
+  - Tradelyzer
 
 # Shown to the LLM for "why this role" / fit questions (ground answers in resume + GitHub context)
 target_role_requirements: |

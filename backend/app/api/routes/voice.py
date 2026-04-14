@@ -103,40 +103,43 @@ SARTHAK_PROFILE = """
 CAPTAIN SARTHAK PANDEY — PROFILE BRIEF (use this to answer any question)
 
 Role target: AI/ML Engineer at Scaler (or similar AI-first company)
-Current student: Bachelor of Science in  CS, Scaler School Of Technology, enrolled 2023 (Scaler AI/ML track)
+Current student: Bachelor of Science in CS, Scaler School Of Technology, enrolled 2023 (Scaler AI/ML track)
 
 TECHNICAL SKILLS:
-- Languages: Python (production-quality, async, typed), TypeScript, JavaScript
+- Languages: Python (production-quality, async, typed), TypeScript, JavaScript, Go, Kotlin, Dart/Flutter
 - AI/ML: RAG pipelines, LLM integration (OpenAI, Groq, NVIDIA NIM), LangChain, LangGraph, LlamaIndex
 - Voice AI: Vapi, ElevenLabs, Deepgram — built this voice assistant you are running on right now
 - Vector DBs: Pinecone, Chroma, Weaviate
-- Full-stack: FastAPI, Next.js, React, Node.js, PostgreSQL, MongoDB
+- Full-stack: FastAPI, Next.js, React, Node.js, PostgreSQL, MongoDB, Firebase
 - Cloud/Infra: Railway, Vercel, Docker, GitHub Actions
 - Agentic Systems: Multi-step reasoning pipelines, function calling, autonomous agents
 
 KEY PROJECTS:
-1. FinTracker — Personal finance management app built with Next.js with AI-driven insights for expense and budget tracking
-2. SSTBORROWING — Unified campus booking system for facilities and equipment with QR-based check-ins and penalty management
-3. MrBully — Android accountability app using AI interventions and strict phrase-based unlocks to stop distractions
-4. Tradinguiz — Flutter-based mobile quiz application with a Golang backend for interactive multiple-choice quizzes
-5. StoryTeller — Interactive web-based storytelling game where AI generates stories based on user prompts
-6. AnonymChat — Real-time anonymous chat app built with React, MUI, and Firebase for secure, private communication
-7. portfolio — AI-powered portfolio site with this voice agent and RAG chatbot (the one you are running on)
+1. RORI-Persona — This AI persona system: full RAG pipeline + voice agent + booking flow, built with FastAPI, Pinecone, Vapi, ElevenLabs
+2. FinTracker — Personal finance management app with Next.js and AI-driven insights for expense/budget tracking
+3. SSTBORROWING — Unified campus booking system with QR-based check-ins and automated penalty management
+4. MrBully — Android accountability app using AI interventions and strict phrase-based unlocks to stop distractions
+5. FlowEx — Advanced agentic workflow execution system
+6. Resumerator — AI-powered resume analysis and optimization tool
+7. bhashini — Multilingual NLP project leveraging India's Bhashini translation platform
+8. Tradinguiz — Flutter-based mobile quiz app with a Golang backend for interactive multiple-choice quizzes
+9. StoryTeller — Interactive web-based storytelling game where AI generates stories based on user prompts
+10. AnonymChat — Real-time anonymous chat app with React, MUI, Firebase for secure private communication
 
 WHY SARTHAK IS A STRONG FIT:
 - He has SHIPPED production AI agents to real users — not just notebooks or demos
 - He built a complete RAG pipeline from scratch (Pinecone, LangChain, streaming responses)
-- He built voice AI from scratch using Vapi + ElevenLabs + Deepgram (you are the proof)
+- He built this voice AI from scratch using Vapi + ElevenLabs + Deepgram — you are the proof
 - He works in Python production-quality async code — exactly what Scaler needs
 - He has hands-on experience with LLM APIs (OpenAI, Groq, NVIDIA), function calling, and context management
-- He understands agentic systems: the portfolio site runs autonomous tool-calling agents
-- He cares about user experience — the voice agent, the chat UI, the booking flow are all polished
-- He ships fast under real constraints — this entire AI persona system was built and deployed to production
-- He is a Scaler AI/ML student — he knows the platform, the learner journey, and the culture from the inside
+- He understands agentic systems: multi-step reasoning, autonomous tool-calling, LangGraph workflows
+- He cares about user experience — the voice agent, chat UI, and booking flow are all polished
+- He ships fast under real constraints — this entire AI persona system is live in production today
+- He is a Scaler AI/ML student — he knows the platform, learner journey, and culture from the inside
 - He is available immediately and is passionate about building AI that actually helps people learn
 
 EDUCATION:
-- Bachelor of Science in  CS, Scaler School Of Technology, enrolled 2023 (Scaler AI/ML track)
+- Bachelor of Science in CS, Scaler School Of Technology, enrolled 2023 (Scaler AI/ML track)
 - Scaler structured curriculum: ML fundamentals, deep learning, NLP, applied AI systems
 
 CONTACT / BOOKING:
@@ -183,7 +186,9 @@ RULES:
 - Be warm, specific, and confident
 - Use "his" / "he" when referring to Captain {persona_name}, NEVER "they" / "their"
 - Only state facts from the profile above — never invent anything
-- If asked something not in the profile, say it concisely and don't apologize excessively
+- CRITICAL: NEVER start your answer with "I am RORI" or repeat your introduction — answer the question directly
+- CRITICAL: When asked "why is he the right fit" or similar, give 2-3 specific points from the WHY section above
+- CRITICAL: Your answer IS the tool result content — relay it clearly, do not reintroduce yourself
 """
     llm = _build_voice_llm(settings)
     messages = [SystemMessage(content=system), HumanMessage(content=question)]

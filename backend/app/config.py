@@ -1,5 +1,6 @@
 """Application configuration loaded from environment variables."""
 
+import logging
 from functools import lru_cache
 
 from pydantic import model_validator
@@ -98,11 +99,11 @@ class Settings(BaseSettings):
     # RAG Config
     chunk_size: int = 512
     chunk_overlap: int = 50
-    retrieval_top_k: int = 5
+    retrieval_top_k: int = 8
     similarity_threshold: float = 0.7
-    rag_max_context_docs: int = 6
+    rag_max_context_docs: int = 10
     rag_max_chars_per_doc: int = 1200
-    rag_retrieval_timeout_seconds: float = 8.0
+    rag_retrieval_timeout_seconds: float = 5.0
 
     @model_validator(mode="after")
     def validate_llm_and_embedding_keys(self):
@@ -146,6 +147,10 @@ class Settings(BaseSettings):
                 "or set EMBEDDING_API_BASE + EMBEDDING_API_KEY (e.g. Groq + ModelScope)."
             )
         if self.llm_max_tokens > 2048:
+            logging.warning(
+                "LLM_MAX_TOKENS=%d exceeds safe limit; clamping to 2048",
+                self.llm_max_tokens,
+            )
             self.llm_max_tokens = 2048
 
         return self

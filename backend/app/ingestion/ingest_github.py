@@ -6,6 +6,7 @@ from app.config import Settings
 from app.core.vector_store import VectorStoreManager
 from app.ingestion.chunking import chunk_text
 from app.services.github_service import GitHubService
+from app.services.persona_service import PersonaService
 
 logger = structlog.get_logger()
 
@@ -37,11 +38,41 @@ def _create_repos_summary(repos) -> str:
 
 
 def ingest_github(settings: Settings, vector_store_manager: VectorStoreManager):
-    """Fetch GitHub repos and ingest into vector store."""
+    """Fetch GitHub repos and ingest into vector store.
+
+    Reads showcase and exclude lists from persona_config.yaml so that we only
+    ingest meaningful, role-relevant repos instead of every public repo.
+    """
     logger.info("Starting GitHub ingestion")
 
+    # Load showcase / exclude lists from persona config
+    persona = PersonaService()
+    cfg = persona.config
+
+    raw_showcase = cfg.get("github_showcase_repos") or []
+    showcase_repos = (
+        {str(x).strip() for x in raw_showcase if x}
+        if isinstance(raw_showcase, list) and raw_showcase
+        else None
+    )
+
+    raw_exclude = cfg.get("github_exclude_repos") or []
+    exclude_repos = (
+        {str(x).strip() for x in raw_exclude if x}
+        if isinstance(raw_exclude, list) and raw_exclude
+        else None
+    )
+
+    if showcase_repos:
+        logger.info("Showcase repos filter active", repos=sorted(showcase_repos))
+    if exclude_repos:
+        logger.info("Exclude repos filter active", repos=sorted(exclude_repos))
+
     github_service = GitHubService(settings)
-    repos = github_service.fetch_all_repos()
+    repos = github_service.fetch_all_repos(
+        showcase_repos=showcase_repos,
+        exclude_repos=exclude_repos,
+    )
 
     all_chunks = []
 
