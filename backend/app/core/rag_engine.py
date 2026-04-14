@@ -220,7 +220,7 @@ class RAGEngine:
 
     def _retrieval_timeout_seconds(self) -> float:
         """Clamp vector retrieval timeout to a sane positive value."""
-        raw = getattr(self.settings, "rag_retrieval_timeout_seconds", 8.0) or 8.0
+        raw = getattr(self.settings, "rag_retrieval_timeout_seconds", 5.0) or 5.0
         return max(1.0, float(raw))
 
     async def _similarity_search_with_score(self, query: str, k: int) -> List[tuple]:
@@ -282,7 +282,7 @@ class RAGEngine:
             try:
                 extra = await self._similarity_search_with_score(
                     bias_q,
-                    min(12, len(showcase) + 6),
+                    min(6, len(showcase) + 2),
                 )
             except Exception as e:
                 logger.warning("showcase boost search failed", error=str(e))
@@ -356,6 +356,8 @@ class RAGEngine:
         """Retrieve relevant documents from vector store."""
         try:
             k = self._retrieve_k(query)
+
+            # Run primary search first
             results = await self._similarity_search_with_score(query, k)
 
             filtered = [
@@ -372,6 +374,13 @@ class RAGEngine:
 
             max_docs = max(1, int(getattr(self.settings, "rag_max_context_docs", 6) or 6))
             base = filtered if filtered else (results[:max_docs] if results else [])
+
+            # Skip showcase boost if primary search returned nothing
+            # (embedding API is likely stalling — boost will also time out)
+            if not results:
+                logger.info("Skipping showcase boost — primary search returned empty")
+                return base
+
             merged = await self._merge_showcase_boost(query, base)
             return merged if merged else base
 

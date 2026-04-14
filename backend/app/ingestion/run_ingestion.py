@@ -22,7 +22,10 @@ def run_full_ingestion():
     total_chunks = 0
     
     logger.info("Clearing previous vector store data...")
-    vector_store_manager.delete_namespace("")
+    try:
+        vector_store_manager.delete_namespace("")
+    except Exception as e:
+        logger.info(f"Skipped clearing namespace (expected for new index): {e}")
 
     logger.info("\n--- Ingesting Resume ---")
     try:
